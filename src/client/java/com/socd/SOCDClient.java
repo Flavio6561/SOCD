@@ -13,12 +13,12 @@ import org.slf4j.LoggerFactory;
 
 public class SOCDClient implements ClientModInitializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(SOCDClient.class);
-    private double forwardReleaseTime;
-    private double backwardReleaseTime;
+    private static double forwardReleaseTime;
+    private static double backwardReleaseTime;
+    private static double rightReleaseTime;
+    private static double leftReleaseTime;
     private static boolean socdForward;
     private static boolean socdBackward;
-    private double rightReleaseTime;
-    private double leftReleaseTime;
     private static boolean socdRight;
     private static boolean socdLeft;
     private static KeyBinding forwardKey;
@@ -34,33 +34,20 @@ public class SOCDClient implements ClientModInitializer {
     protected static boolean toggleMod = true;
     protected static boolean toggleMovement = true;
     protected static boolean toggleStrafe = true;
-    protected static boolean movementContinueAfterRelease = true;
-    protected static boolean strafeContinueAfterRelease = true;
 
     @Override
     public void onInitializeClient() {
         ConfigManager.loadConfig();
         CommandRegister.registerCommands();
         LOGGER.info("SOCD initialized with success");
-        WorldRenderEvents.END.register(context -> manageSOCD(MinecraftClient.getInstance()));
+        WorldRenderEvents.END.register(context -> manageSOCD());
     }
 
-    private void manageSOCD(MinecraftClient client) {
-        if (client == null || client.options == null || !toggleMod)
+    private static void manageSOCD() {
+        if (MinecraftClient.getInstance().options == null || !toggleMod)
             return;
         updateKeys();
-
-        double time = System.currentTimeMillis();
-
-        if (!forwardKey.isPressed())
-            forwardReleaseTime = time;
-        if (!backKey.isPressed())
-            backwardReleaseTime = time;
-        if (!rightKey.isPressed())
-            rightReleaseTime = time;
-        if (!leftKey.isPressed())
-            leftReleaseTime = time;
-
+        updateReleaseTimes(System.currentTimeMillis());
         if (toggleMovement) {
             if (forwardKey.isPressed() && backKey.isPressed()) {
                 if (forwardReleaseTime < backwardReleaseTime) {
@@ -72,16 +59,13 @@ public class SOCDClient implements ClientModInitializer {
                     socdBackward = true;
                 }
             }
-
-            if (movementContinueAfterRelease) {
-                if (socdForward && isRawKeyPressed(forwardKeyInt) && !isRawKeyPressed(backKeyInt)) {
-                    forwardKey.setPressed(true);
-                    socdForward = false;
-                }
-                if (socdBackward && isRawKeyPressed(backKeyInt) && !isRawKeyPressed(forwardKeyInt)) {
-                    backKey.setPressed(true);
-                    socdBackward = false;
-                }
+            if (socdForward && isRawKeyPressed(forwardKeyInt) && !isRawKeyPressed(backKeyInt)) {
+                forwardKey.setPressed(true);
+                socdForward = false;
+            }
+            if (socdBackward && isRawKeyPressed(backKeyInt) && !isRawKeyPressed(forwardKeyInt)) {
+                backKey.setPressed(true);
+                socdBackward = false;
             }
         }
 
@@ -96,26 +80,28 @@ public class SOCDClient implements ClientModInitializer {
                     socdLeft = true;
                 }
             }
-
-            if (strafeContinueAfterRelease) {
-                if (socdRight && isRawKeyPressed(rightKeyInt) && !isRawKeyPressed(leftKeyInt)) {
-                    rightKey.setPressed(true);
-                    socdRight = false;
-                }
-                if (socdLeft && isRawKeyPressed(leftKeyInt) && !isRawKeyPressed(rightKeyInt)) {
-                    leftKey.setPressed(true);
-                    socdLeft = false;
-                }
+            if (socdRight && isRawKeyPressed(rightKeyInt) && !isRawKeyPressed(leftKeyInt)) {
+                rightKey.setPressed(true);
+                socdRight = false;
+            }
+            if (socdLeft && isRawKeyPressed(leftKeyInt) && !isRawKeyPressed(rightKeyInt)) {
+                leftKey.setPressed(true);
+                socdLeft = false;
             }
         }
+    }
+
+    private static void updateReleaseTimes(double time) {
+        if (!forwardKey.isPressed()) forwardReleaseTime = time;
+        if (!backKey.isPressed()) backwardReleaseTime = time;
+        if (!rightKey.isPressed()) rightReleaseTime = time;
+        if (!leftKey.isPressed()) leftReleaseTime = time;
     }
 
     private static void updateKeys() {
         if (keysAssigned)
             return;
-        else
-            keysAssigned = true;
-
+        keysAssigned = true;
         forwardKey = MinecraftClient.getInstance().options.forwardKey;
         backKey = MinecraftClient.getInstance().options.backKey;
         rightKey = MinecraftClient.getInstance().options.rightKey;
@@ -135,7 +121,7 @@ public class SOCDClient implements ClientModInitializer {
         }
     }
 
-    private boolean isRawKeyPressed(int key) {
+    private static boolean isRawKeyPressed(int key) {
         return GLFW.glfwGetKey(MinecraftClient.getInstance().getWindow().getHandle(), key) == GLFW.GLFW_PRESS;
     }
 
@@ -166,32 +152,9 @@ public class SOCDClient implements ClientModInitializer {
         return 1;
     }
 
-    public static int toggleMovementContinueAfterRelease(CommandContext<FabricClientCommandSource> ignoredFabricClientCommandSourceCommandContext) {
-        movementContinueAfterRelease = !movementContinueAfterRelease;
-        ConfigManager.saveConfig();
-        sendMessageToPlayer("Continuous movement SOCD is now " + (movementContinueAfterRelease ? "enabled" : "disabled"));
-        resetSocdStatus();
-        return 1;
-    }
-
-    public static int toggleStrafeContinueAfterRelease(CommandContext<FabricClientCommandSource> ignoredFabricClientCommandSourceCommandContext) {
-        strafeContinueAfterRelease = !strafeContinueAfterRelease;
-        ConfigManager.saveConfig();
-        sendMessageToPlayer("Continuous strafe SOCD is now " + (strafeContinueAfterRelease ? "enabled" : "disabled"));
-        resetSocdStatus();
-        return 1;
-    }
-
     public static int updateKeys(CommandContext<FabricClientCommandSource> ignoredFabricClientCommandSourceCommandContext) {
         keysAssigned = false;
         updateKeys();
         return 1;
-    }
-
-    public static void resetSocdStatus() {
-        socdForward = false;
-        socdBackward = false;
-        socdRight = false;
-        socdLeft = false;
     }
 }

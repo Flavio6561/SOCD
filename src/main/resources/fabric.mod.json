@@ -3,7 +3,7 @@
 	"id": "socd",
 	"version": "${version}",
 	"name": "SOCD",
-	"description": "SOCD for movement and strafe keys",
+	"description": "SOCD / Snappy Tappy / Snap Tap / Null Bind for Minecraft movement",
 	"authors": [
 		"Flavio6561"
 	],

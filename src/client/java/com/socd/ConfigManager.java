@@ -18,8 +18,6 @@ public class ConfigManager {
         boolean toggleMod;
         boolean toggleMovement;
         boolean toggleStrafe;
-        boolean movementContinueAfterRelease;
-        boolean strafeContinueAfterRelease;
     }
 
     public static void loadConfig() {
@@ -43,8 +41,6 @@ public class ConfigManager {
         config.toggleMod = SOCDClient.toggleMod;
         config.toggleMovement = SOCDClient.toggleMovement;
         config.toggleStrafe = SOCDClient.toggleStrafe;
-        config.movementContinueAfterRelease = SOCDClient.movementContinueAfterRelease;
-        config.strafeContinueAfterRelease = SOCDClient.strafeContinueAfterRelease;
 
         saveConfig();
     }
@@ -53,8 +49,6 @@ public class ConfigManager {
         SOCDClient.toggleMod = config.toggleMod;
         SOCDClient.toggleMovement = config.toggleMovement;
         SOCDClient.toggleStrafe = config.toggleStrafe;
-        SOCDClient.movementContinueAfterRelease = config.movementContinueAfterRelease;
-        SOCDClient.strafeContinueAfterRelease = config.strafeContinueAfterRelease;
 
         saveConfig();
     }
@@ -67,8 +61,6 @@ public class ConfigManager {
         currentConfig.toggleMod = SOCDClient.toggleMod;
         currentConfig.toggleMovement = SOCDClient.toggleMovement;
         currentConfig.toggleStrafe = SOCDClient.toggleStrafe;
-        currentConfig.movementContinueAfterRelease = SOCDClient.movementContinueAfterRelease;
-        currentConfig.strafeContinueAfterRelease = SOCDClient.strafeContinueAfterRelease;
 
         try (FileWriter writer = new FileWriter(configFile)) {
             gson.toJson(currentConfig, writer);
