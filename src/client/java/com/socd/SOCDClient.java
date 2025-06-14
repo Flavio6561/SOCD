@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
@@ -17,10 +18,6 @@ public class SOCDClient implements ClientModInitializer {
     private static double backwardReleaseTime;
     private static double rightReleaseTime;
     private static double leftReleaseTime;
-    private static boolean socdForward;
-    private static boolean socdBackward;
-    private static boolean socdRight;
-    private static boolean socdLeft;
     private static KeyBinding forwardKey;
     private static KeyBinding backKey;
     private static KeyBinding rightKey;
@@ -39,55 +36,38 @@ public class SOCDClient implements ClientModInitializer {
     public void onInitializeClient() {
         ConfigManager.loadConfig();
         CommandRegister.registerCommands();
-        LOGGER.info("SOCD initialized with success");
-        WorldRenderEvents.END.register(context -> manageSOCD());
+        WorldRenderEvents.END.register(ignored -> SOCDMain());
+        LOGGER.info("SOCD initialized");
     }
 
-    private static void manageSOCD() {
-        if (MinecraftClient.getInstance().options == null || !toggleMod)
+    private static void SOCDMain() {
+        if (MinecraftClient.getInstance().options == null || !toggleMod || MinecraftClient.getInstance().currentScreen != null)
             return;
         updateKeys();
         updateReleaseTimes(System.currentTimeMillis());
         if (toggleMovement) {
             if (forwardKey.isPressed() && backKey.isPressed()) {
-                if (forwardReleaseTime < backwardReleaseTime) {
+                if (forwardReleaseTime < backwardReleaseTime)
                     forwardKey.setPressed(false);
-                    socdForward = true;
-                }
-                if (forwardReleaseTime > backwardReleaseTime) {
+                if (forwardReleaseTime > backwardReleaseTime)
                     backKey.setPressed(false);
-                    socdBackward = true;
-                }
             }
-            if (socdForward && isRawKeyPressed(forwardKeyInt) && !isRawKeyPressed(backKeyInt)) {
+            if (!forwardKey.isPressed() && isRawKeyPressed(forwardKeyInt) && !isRawKeyPressed(backKeyInt))
                 forwardKey.setPressed(true);
-                socdForward = false;
-            }
-            if (socdBackward && isRawKeyPressed(backKeyInt) && !isRawKeyPressed(forwardKeyInt)) {
+            if (!backKey.isPressed() && isRawKeyPressed(backKeyInt) && !isRawKeyPressed(forwardKeyInt))
                 backKey.setPressed(true);
-                socdBackward = false;
-            }
         }
-
         if (toggleStrafe) {
             if (rightKey.isPressed() && leftKey.isPressed()) {
-                if (rightReleaseTime < leftReleaseTime) {
+                if (rightReleaseTime < leftReleaseTime)
                     rightKey.setPressed(false);
-                    socdRight = true;
-                }
-                if (rightReleaseTime > leftReleaseTime) {
+                if (rightReleaseTime > leftReleaseTime)
                     leftKey.setPressed(false);
-                    socdLeft = true;
-                }
             }
-            if (socdRight && isRawKeyPressed(rightKeyInt) && !isRawKeyPressed(leftKeyInt)) {
+            if (!rightKey.isPressed() && isRawKeyPressed(rightKeyInt) && !isRawKeyPressed(leftKeyInt))
                 rightKey.setPressed(true);
-                socdRight = false;
-            }
-            if (socdLeft && isRawKeyPressed(leftKeyInt) && !isRawKeyPressed(rightKeyInt)) {
+            if (!leftKey.isPressed() && isRawKeyPressed(leftKeyInt) && !isRawKeyPressed(rightKeyInt))
                 leftKey.setPressed(true);
-                socdLeft = false;
-            }
         }
     }
 
@@ -112,7 +92,7 @@ public class SOCDClient implements ClientModInitializer {
             rightKeyInt = GLFW.class.getField("GLFW_KEY_" + rightKey.getBoundKeyTranslationKey().replaceAll("key.keyboard.", "").toUpperCase().replaceAll("\\.", "_")).getInt(null);
             leftKeyInt = GLFW.class.getField("GLFW_KEY_" + leftKey.getBoundKeyTranslationKey().replaceAll("key.keyboard.", "").toUpperCase().replaceAll("\\.", "_")).getInt(null);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            sendMessageToPlayer("One or multiple keys are not supported SOCD keys. Replace them with GLFW supported keys");
+            sendMessageToPlayer("One or multiple keys are not supported SOCD keys. Replace them with GLFW supported keys", 0xff0000, false);
             LOGGER.warn("One or multiple keys are not supported SOCD keys. Replace them with GLFW supported keys");
             forwardKeyInt = GLFW.GLFW_KEY_W;
             backKeyInt = GLFW.GLFW_KEY_S;
@@ -122,37 +102,38 @@ public class SOCDClient implements ClientModInitializer {
     }
 
     private static boolean isRawKeyPressed(int key) {
+
         return GLFW.glfwGetKey(MinecraftClient.getInstance().getWindow().getHandle(), key) == GLFW.GLFW_PRESS;
     }
 
-    public static void sendMessageToPlayer(String chat_message) {
+    private static void sendMessageToPlayer(String message, int color, boolean overlay) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player != null)
-            client.player.sendMessage(Text.literal(chat_message), false);
+            client.player.sendMessage((Text.literal(message).setStyle(Style.EMPTY.withColor(color))), overlay);
     }
 
-    public static int toggleMod(CommandContext<FabricClientCommandSource> ignoredFabricClientCommandSourceCommandContext) {
+    protected static int toggleMod(CommandContext<FabricClientCommandSource> ignoredFabricClientCommandSourceCommandContext) {
         toggleMod = !toggleMod;
         ConfigManager.saveConfig();
-        sendMessageToPlayer("Mod is now " + (toggleMod ? "enabled" : "disabled"));
+        sendMessageToPlayer("Mod is now " + (toggleMod ? "enabled" : "disabled"), (toggleMod ? 0x00ff00 : 0xff0000), true);
         return 1;
     }
 
-    public static int toggleMovement(CommandContext<FabricClientCommandSource> ignoredFabricClientCommandSourceCommandContext) {
+    protected static int toggleMovement(CommandContext<FabricClientCommandSource> ignoredFabricClientCommandSourceCommandContext) {
         toggleMovement = !toggleMovement;
         ConfigManager.saveConfig();
-        sendMessageToPlayer("Movement SOCD is now " + (toggleMovement ? "enabled" : "disabled"));
+        sendMessageToPlayer("Movement SOCD is now " + (toggleMovement ? "enabled" : "disabled"), (toggleMovement ? 0x00ff00 : 0xff0000), true);
         return 1;
     }
 
-    public static int toggleStrafe(CommandContext<FabricClientCommandSource> ignoredFabricClientCommandSourceCommandContext) {
+    protected static int toggleStrafe(CommandContext<FabricClientCommandSource> ignoredFabricClientCommandSourceCommandContext) {
         toggleStrafe = !toggleStrafe;
         ConfigManager.saveConfig();
-        sendMessageToPlayer("Strafe SOCD is now " + (toggleStrafe ? "enabled" : "disabled"));
+        sendMessageToPlayer("Strafe SOCD is now " + (toggleStrafe ? "enabled" : "disabled"), (toggleStrafe ? 0x00ff00 : 0xff0000), true);
         return 1;
     }
 
-    public static int updateKeys(CommandContext<FabricClientCommandSource> ignoredFabricClientCommandSourceCommandContext) {
+    protected static int updateKeys(CommandContext<FabricClientCommandSource> ignoredFabricClientCommandSourceCommandContext) {
         keysAssigned = false;
         updateKeys();
         return 1;

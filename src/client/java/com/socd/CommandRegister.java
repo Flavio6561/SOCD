@@ -3,7 +3,7 @@ package com.socd;
 import net.fabricmc.fabric.api.client.command.v2.*;
 
 public class CommandRegister {
-    public static void registerCommands() {
+    protected static void registerCommands() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> dispatcher.register(
                 ClientCommandManager.literal("SOCD")
                         .executes(SOCDClient::toggleMod)

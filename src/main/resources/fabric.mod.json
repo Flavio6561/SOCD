@@ -3,12 +3,16 @@
 	"id": "socd",
 	"version": "${version}",
 	"name": "SOCD",
-	"description": "SOCD / Snappy Tappy / Snap Tap / Null Bind for Minecraft movement",
+	"description": "SOCD / Snappy Tappy / Snap Tap / Null Bind for movement keys",
 	"authors": [
 		"Flavio6561"
 	],
+	"license": "GPL-3.0",
+	"contact": {
+		"issues": "https://github.com/Flavio6561/SOCD/issues",
+		"homepage": "https://github.com/Flavio6561/SOCD"
+	},
 	"custom" : {
-		"fabric-renderer-api-v1:contains_renderer" : true,
 		"modmenu" : {
 			"links" : {
 				"GitHub": "https://github.com/Flavio6561/SOCD",
@@ -19,14 +23,13 @@
 		}
 	},
 	"icon": "assets/socd/icon.png",
-	"environment": "*",
 	"entrypoints": {
 		"client": [
 			"com.socd.SOCDClient"
 		]
 	},
 	"depends": {
-		"fabricloader": ">=0.16.9",
+		"fabricloader": ">=0.16.14",
 		"minecraft": "~1.21",
 		"java": ">=21",
 		"fabric-api": "*"
