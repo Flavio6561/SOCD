@@ -115,7 +115,7 @@ public class SOCDClient implements ClientModInitializer {
     protected static int toggleMod(CommandContext<FabricClientCommandSource> ignoredFabricClientCommandSourceCommandContext) {
         toggleMod = !toggleMod;
         ConfigManager.saveConfig();
-        sendMessageToPlayer("Mod is now " + (toggleMod ? "enabled" : "disabled"), (toggleMod ? 0x00ff00 : 0xff0000), true);
+        sendMessageToPlayer("SOCD is now " + (toggleMod ? "enabled" : "disabled"), (toggleMod ? 0x00ff00 : 0xff0000), true);
         return 1;
     }
 
